@@ -206,7 +206,7 @@ public:
   /// @cond PRIVATE
   template <int Pos>
   bool is(std::integral_constant<int, Pos>) const {
-    return type_ == Pos;
+    return type_ == static_cast<size_t>(Pos);
   }
 
   template <class T>

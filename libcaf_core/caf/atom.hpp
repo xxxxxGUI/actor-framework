@@ -55,9 +55,14 @@ constexpr uint64_t atom_uint(char const (&str)[Size]) {
   return detail::atom_val(str);
 }
 
-/// Converts an atom to its integer representation.
+/// Converts an atom to an unsingedinteger representation.
 constexpr uint64_t atom_uint(atom_value x) {
   return static_cast<uint64_t>(x);
+}
+
+/// Converts an atom to a signed integer representation.
+constexpr int64_t atom_int(atom_value x) {
+  return static_cast<int64_t>(atom_uint(x));
 }
 
 /// Lifts an `atom_value` to a compile-time constant.

@@ -19,14 +19,15 @@
 #ifndef CAF_DETAIL_STRINGIFICATION_INSPECTOR_HPP
 #define CAF_DETAIL_STRINGIFICATION_INSPECTOR_HPP
 
-#include <string>
-#include <vector>
+#include <chrono>
 #include <functional>
+#include <string>
 #include <type_traits>
+#include <vector>
 
 #include "caf/atom.hpp"
-#include "caf/none.hpp"
 #include "caf/error.hpp"
+#include "caf/none.hpp"
 
 #include "caf/meta/type_name.hpp"
 #include "caf/meta/omittable.hpp"
@@ -153,6 +154,36 @@ public:
       consume(deconst(xs[i]));
     }
     result_ += ')';
+  }
+
+  template <class Rep>
+  void consume(std::chrono::duration<Rep, std::nano>& x) {
+    result_ += std::to_string(x.count());
+    result_ += "ns";
+  }
+
+  template <class Rep>
+  void consume(std::chrono::duration<Rep, std::milli>& x) {
+    result_ += std::to_string(x.count());
+    result_ += "ms";
+  }
+
+  template <class Rep>
+  void consume(std::chrono::duration<Rep, std::micro>& x) {
+    result_ += std::to_string(x.count());
+    result_ += "us";
+  }
+
+  template <class Rep>
+  void consume(std::chrono::duration<Rep, std::ratio<1, 1>>& x) {
+    result_ += std::to_string(x.count());
+    result_ += "s";
+  }
+
+  template <class Rep>
+  void consume(std::chrono::duration<Rep, std::ratio<60, 1>>& x) {
+    result_ += std::to_string(x.count());
+    result_ += "min";
   }
 
   template <class T, size_t S>

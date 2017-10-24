@@ -100,6 +100,14 @@ public:
       return "a list";
     }
 
+    const char* operator()(const std::map<std::string, config_value>&) {
+      return "a map";
+    }
+
+    const char* operator()(const timespan&) {
+      return "a timespan";
+    }
+
   private:
     // Catches non-integer types.
     template <class T>
@@ -261,13 +269,13 @@ public:
       // and all floating point numbers as doubles
       using cfg_type =
         typename std::conditional<
-          std::is_integral<value_type>::value && 
+          std::is_integral<value_type>::value &&
                            !std::is_same<bool, value_type>::value,
           int64_t,
           typename std::conditional<
             std::is_floating_point<value_type>::value,
             double,
-            value_type 
+            value_type
             >::type
         >::type;
       value_type tmp;

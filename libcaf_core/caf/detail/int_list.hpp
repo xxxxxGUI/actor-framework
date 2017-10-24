@@ -118,6 +118,11 @@ struct il_range<Last, Last, Is...> {
   using type = int_list<Is...>;
 };
 
+template <long First, long Last>
+constexpr typename il_range<First, Last>::type make_indices() {
+  return {};
+}
+
 } // namespace detail
 } // namespace caf
 

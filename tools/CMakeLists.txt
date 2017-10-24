@@ -23,3 +23,4 @@ else()
 endif()
 
 add(caf-vec)
+add(parser)

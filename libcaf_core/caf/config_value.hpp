@@ -19,13 +19,18 @@
 #ifndef CAF_CONFIG_VALUE_HPP
 #define CAF_CONFIG_VALUE_HPP
 
+#include <chrono>
+#include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
-#include <cstdint>
 
 #include "caf/atom.hpp"
+#include "caf/deep_to_string.hpp"
+#include "caf/timestamp.hpp"
 #include "caf/variant.hpp"
-#include "caf/duration.hpp"
+
+#include "caf/detail/comparable.hpp"
 
 namespace caf {
 
@@ -34,44 +39,53 @@ namespace caf {
 /// contain lists of themselves.
 class config_value {
 public:
-  using T0 = std::string;
-  using T1 = double;
-  using T2 = int64_t;
-  using T3 = bool;
-  using T4 = atom_value;
-  using T5 = duration;
+  using T0 = int64_t;
+  using T1 = bool;
+  using T2 = double;
+  using T3 = atom_value;
+  using T4 = timespan;
+  using T5 = std::string;
   using T6 = std::vector<config_value>;
+  using T7 = std::map<std::string, config_value>;
 
-  using types = detail::type_list<T0, T1, T2, T3, T4, T5, T6>;
+  using type0 = T0;
 
-  using variant_type = variant<T0, T1, T2, T3, T4, T5, T6>;
+  using types = detail::type_list<T0, T1, T2, T3, T4, T5, T6, T7>;
+
+  using variant_type = variant<T0, T1, T2, T3, T4, T5, T6, T7>;
 
   config_value() = default;
-
-  config_value(config_value& other);
 
   config_value(config_value&& other) = default;
 
   config_value(const config_value& other) = default;
 
-  template <class T>
-  config_value(T&& x) : data_(std::forward<T>(x)) {
-    // nop
+  template <class T, class E = detail::enable_if_t<
+                       !std::is_same<detail::decay_t<T>, config_value>::value>>
+  explicit config_value(T&& x) {
+    set(std::forward<T>(x));
   }
-
-  config_value& operator=(config_value& other);
 
   config_value& operator=(config_value&& other) = default;
 
   config_value& operator=(const config_value& other) = default;
 
-  template <class T>
+  template <class T, class E = detail::enable_if_t<
+                       !std::is_same<detail::decay_t<T>, config_value>::value>>
   config_value& operator=(T&& x) {
-    data_ = std::forward<T>(x);
+    set(std::forward<T>(x));
     return *this;
   }
 
   ~config_value();
+
+  /// Converts the value to a list with one element. Does nothing if the value
+  /// already is a list.
+  void convert_to_list();
+
+  /// Appends `x` to a list. Converts this config value to a list first by
+  /// calling `convert_to_list` if needed.
+  void append(config_value x);
 
   inline size_t index() const {
     return data_.index();
@@ -79,21 +93,6 @@ public:
 
   inline bool valueless_by_exception() const {
     return data_.valueless_by_exception();
-  }
-
-  /// @cond PRIVATE
-  template <int Pos>
-  bool is(std::integral_constant<int, Pos>) const {
-    return data_.index() == Pos;
-  }
-
-  template <class T>
-  bool is() const {
-    using namespace detail;
-    int_token<tl_index_where<types,
-                             tbind<is_same_ish, T>::template type>::value>
-      token;
-    return is(token);
   }
 
   template <class Visitor>
@@ -130,8 +129,57 @@ public:
   /// @endcond
 
 private:
+  // -- auto conversion of related types ---------------------------------------
+
+  inline void set(bool x) {
+    data_ = x;
+  }
+
+  inline void set(const char* x) {
+    data_ = std::string{x};
+  }
+
+  template <class T>
+  detail::enable_if_t<
+    detail::is_one_of<detail::decay_t<T>, T2, T3, T4, T5, T6, T7>::value>
+  set(T&& x) {
+    data_ = std::forward<T>(x);
+  }
+
+  template <class T>
+  detail::enable_if_t<std::is_integral<T>::value> set(T x) {
+    data_ = static_cast<int64_t>(x);
+  }
+
+  inline void convert(timespan x) {
+    data_ = x;
+  }
+
+  template <class Rep, class Ratio>
+  void convert(std::chrono::duration<Rep, Ratio> x) {
+    data_ = std::chrono::duration_cast<timespan>(x);
+  }
+
+  // -- member variables -------------------------------------------------------
+
   variant_type data_;
 };
+
+/// @relates config_value
+bool operator<(const config_value& x, const config_value& y);
+
+/// @relates config_value
+bool operator==(const config_value& x, const config_value& y);
+
+/// @relates config_value
+inline bool operator>=(const config_value& x, const config_value& y) {
+  return !(x < y);
+}
+
+/// @relates config_value
+inline bool operator!=(const config_value& x, const config_value& y) {
+  return !(x == y);
+}
 
 /// @relates config_value
 template <class Visitor>
@@ -175,6 +223,11 @@ T* get_if(config_value* x) {
 template <class T>
 const T* get_if(const config_value* x) {
   return x != nullptr ? get_if<T>(&(x->data())) : nullptr;
+}
+
+/// @relates config_value
+inline std::string to_string(const config_value& x) {
+  return deep_to_string(x.data());
 }
 
 /// @relates config_value

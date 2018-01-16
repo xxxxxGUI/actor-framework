@@ -52,8 +52,6 @@ def do_gcc_things(tags) {
   echo "building on nodes with tag ${tags}"
   // checkout scm
   fetchPR(env.CHANGE_ID, "--depth=1", "")
-  git branch
-  git status
   sh 'ls'
 }
 
@@ -71,5 +69,7 @@ def fetchPR(prNum, fetchArgs, extraRefSpec)
     #[[ "\$RETRIES" -eq 3 ]] && exit 1
     #git checkout pull_${prNum}
     #git checkout master
+    git branch
+    git status
     """
 }

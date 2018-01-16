@@ -10,6 +10,9 @@ def gcc_builds = ["Linux && gcc4.8",
 pipeline {
   agent none
 
+  parameters {
+    string(name: 'sha1', defaultValue: '*/master', description: 'What branch / PR to build?``')
+  }
   stages {
     stage ('Get') {
       steps {
@@ -47,29 +50,25 @@ pipeline {
   }
 }
 
+// def build_stage(tags) {
+//   return {
+//     stage (tags) {
+//       agent {
+//         label tags
+//       }
+//       steps {
+//         do_gcc_things("Linux && gcc4.9")
+//       }
+//     }
+//   }
+// }
+
 def do_gcc_things(tags) {
   deleteDir()
   echo "building on nodes with tag ${tags}"
-  // checkout scm
-  fetchPR(env.CHANGE_ID, "--depth=1", "")
+  echo "env.CHANGE_ID is ${env.CHANGE_ID}"
+  echo "sha1 is ${params.sha1}"
+  checkout([$class: 'GitSCM', branches: [[name: '${params.sha1}']], doGenerateSubmoduleConfigurations: false, extensions: [[$class: 'CloneOption', depth: 0, noTags: true, reference: '', shallow: false]], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'c3ecbe72-d64a-4d89-96a6-6d4cb76c43d1', refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: 'git@github.com:actor-framework/actor-framework.git']]])
+  sh 'git branch'
   sh 'ls'
-}
-
-def fetchPR(prNum, fetchArgs, extraRefSpec)
-{
-    sh """git init
-    git remote add origin "https://github.com/actor-framework/actor-framework"
-    echo "prNum is ${prNum}"
-    ifconfig
-    git fetch origin master
-    git checkout master
-    #for RETRIES in {1..3}; do
-    #    timeout 30 git fetch -u -n ${fetchArgs} origin ${extraRefSpec} pull/${prNum}/merge:pull_${prNum} && break
-    #done
-    #[[ "\$RETRIES" -eq 3 ]] && exit 1
-    #git checkout pull_${prNum}
-    #git checkout master
-    git branch
-    git status
-    """
 }

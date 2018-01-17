@@ -16,6 +16,8 @@ pipeline {
     stage ('Get') {
       steps {
         node ('master') {
+          // TODO: pull github branch into mirror
+          // TODO: set URL, refs, prNum?
           echo "Hello from master"
         }
       }
@@ -52,14 +54,17 @@ def do_stuff(tags,
               build_opts = "") {
     echo "Starting build with '${tags}'"
     echo "Checkout"
+    // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
     checkout scm
     echo "DEBUG INFO"
     sh 'git branch'
     sh 'ifconfig'
     echo "Configure"
+    sh '''
     mkdir build
     cd build
     cmake -DCMAKE_BUILD_TYPE="${build_type}" -G "${generator}" ..
+    '''
     echo "Build"
     // make -j 2 ${build_opts}
     echo "Test"

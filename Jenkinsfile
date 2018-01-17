@@ -63,7 +63,6 @@ def do_stuff(tags,
   checkout scm
   echo "DEBUG INFO"
   sh 'git branch'
-  sh 'ifconfig'
   echo "Configure"
   def ret = sh(returnStatus: true,
                script: """#!/bin/bash +ex
@@ -76,9 +75,9 @@ def do_stuff(tags,
                           if ((\$RESULT)); then
                             exit \$RESULT
                           fi;
-                          echo "build_dir: \${build_dir}"
-                          echo "generator: \${generator}"
-                          cmake -DCMAKE_BUILD_TYPE="\${build_type}" -G "\${generator}" .. || RESULT=1
+                          echo "build_dir: $build_dir"
+                          echo "generator: $generator"
+                          cmake -DCMAKE_BUILD_TYPE="\$build_type" -G "\$generator" .. || RESULT=1
                           exit \$RESULT""")
   if (ret) {
     echo "FAILURE"
@@ -86,7 +85,6 @@ def do_stuff(tags,
   } else {
     echo "SUCCESS"
   }
-  currentBuild.result
   echo "Build"
   // make -j 2 ${build_opts}
   echo "Test"

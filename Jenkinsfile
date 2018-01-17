@@ -64,11 +64,19 @@ def do_stuff(tags,
     sh 'git branch'
     sh 'ifconfig'
     echo "Configure"
-    sh '''
-    mkdir build
-    cd build
-    cmake -DCMAKE_BUILD_TYPE="\${build_type}" -G "\${generator}" ..
-    '''
+    def ret = sh(returnStatus: true,
+                 script: """#!/bin/bash +ex
+                            declare -i RESULT=0
+                            mkdir build
+                            cd build
+                            cmake -DCMAKE_BUILD_TYPE="\${build_type}" -G "\${generator}" ..
+                            exit \$RESULT""")
+    if (ret) {
+      echo "Failed"
+      currentBuild.result = 'FAILURE'
+    } else {
+      echo "SUCCESS"
+    }
     currentBuild.result
     echo "Build"
     // make -j 2 ${build_opts}

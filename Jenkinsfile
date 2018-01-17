@@ -18,6 +18,7 @@ pipeline {
         node ('master') {
           // TODO: pull github branch into mirror
           // TODO: set URL, refs, prNum?
+          // TODO: maybe static tests?
           echo "Hello from master"
         }
       }
@@ -75,7 +76,7 @@ def do_stuff(tags,
                           if ((\$RESULT)); then
                             exit \$RESULT
                           fi;
-                          echo "build_dir: $build_dir"
+                          echo "build_type: $build_type"
                           echo "generator: $generator"
                           cmake -DCMAKE_BUILD_TYPE="\$build_type" -G "\$generator" .. || RESULT=1
                           exit \$RESULT""")

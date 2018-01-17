@@ -17,7 +17,7 @@ pipeline {
       admins(['Neverlord', 'josephnoir', 'mavam'])
       orgWhitelist('actor-framework')
       cron('H/5 * * * *')
-      triggerPhrase('.*test\\\W+this\\\W+please.*')
+      triggerPhrase('.*test\\W+this\\W+please.*')
       // onlyTriggerPhrase()
       useGitHubHooks()
       // displayBuildErrorsOnDownstreamBuilds()

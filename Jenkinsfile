@@ -23,30 +23,16 @@ pipeline {
     stage ('Build') {
       parallel {
         stage ("Linux && gcc4.8") {
-          agent {
-            label "Linux && gcc4.8"
-          }
-          steps {
-            echo "Hello from gcc 4.8"
-            sh 'gcc -v'
-            checkout scm
-            sh 'git branch'
-            sh 'ls'
-            sh 'ifconfig'
-          }
+          agent { label "Linux && gcc4.8" }
+          steps { do_stuff("Linux && gcc4.8") }
         }
         stage ("Linux && gcc4.9") {
-          agent {
-            label "Linux && gcc4.9"
-          }
-          steps {
-            echo "Hello from gcc 4.9"
-            sh 'gcc -v'
-            checkout scm
-            sh 'git branch'
-            sh 'ls'
-            sh 'ifconfig'
-          }
+          agent { label "Linux && gcc4.9" }
+          steps { do_stuff("Linux && gcc4.9") }
+        }
+        stage ("macOS && clang") {
+          agent { label "macOS && clang" }
+          steps { do_stuff("macOS && clang") }
         }
       }
     }
@@ -57,4 +43,25 @@ pipeline {
       }
     }
   }
+}
+
+def do_stuff(tags,
+              build_type = "Debug",
+              generator = "Unix Makefiles",
+              cmake_opts = "",
+              build_opts = "") {
+    echo "Starting build with '${tags}'"
+    echo "Checkout"
+    checkout scm
+    echo "DEBUG INFO"
+    sh 'git branch'
+    sh 'ifconfig'
+    echo "Configure"
+    mkdir build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE="${build_type}" -G"${generator}" ..
+    echo "Build"
+    // make -j 2 ${build_opts}
+    echo "Test"
+    // ctest .
 }

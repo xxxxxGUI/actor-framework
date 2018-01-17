@@ -12,6 +12,18 @@ def msvc_builds = ["msbuild"]
 pipeline {
   agent none
 
+  triggers {
+    githubPullRequest {
+      admins(['Neverlord', 'josephnoir', 'mavam'])
+      orgWhitelist('actor-framework')
+      cron('H/5 * * * *')
+      triggerPhrase('.*test\W+this\W+please.*')
+      // onlyTriggerPhrase()
+      useGitHubHooks()
+      // displayBuildErrorsOnDownstreamBuilds()
+    }
+  }
+
   stages {
     stage ('Get') {
       steps {
@@ -78,7 +90,7 @@ def do_stuff(tags,
                           fi;
                           echo "build_type: $build_type"
                           echo "generator: $generator"
-                          cmake -DCMAKE_BUILD_TYPE="\$build_type" -G "\$generator" .. || RESULT=1
+                          cmake -DCMAKE_BUILD_TYPE=$build_type -G $generator .. || RESULT=1
                           exit \$RESULT""")
   if (ret) {
     echo "FAILURE"

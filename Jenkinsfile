@@ -59,7 +59,7 @@ def do_stuff(tags,
     echo "Configure"
     mkdir build
     cd build
-    cmake -DCMAKE_BUILD_TYPE="${build_type}" -G"${generator}" ..
+    cmake -DCMAKE_BUILD_TYPE="${build_type}" -G "${generator}" ..
     echo "Build"
     // make -j 2 ${build_opts}
     echo "Test"

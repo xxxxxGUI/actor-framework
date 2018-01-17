@@ -47,6 +47,10 @@ pipeline {
   }
 }
 
+if (currentBuild.result == null) {
+  currentBuild.result = 'SUCCESS'
+}
+
 def do_stuff(tags,
               build_type = "Debug",
               generator = "Unix Makefiles",
@@ -65,6 +69,7 @@ def do_stuff(tags,
     cd build
     cmake -DCMAKE_BUILD_TYPE="\${build_type}" -G "\${generator}" ..
     '''
+    currentBuild.result
     echo "Build"
     // make -j 2 ${build_opts}
     echo "Test"

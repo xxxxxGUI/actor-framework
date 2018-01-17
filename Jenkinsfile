@@ -52,34 +52,43 @@ if (currentBuild.result == null) {
 }
 
 def do_stuff(tags,
-              build_type = "Debug",
-              generator = "Unix Makefiles",
-              cmake_opts = "",
-              build_opts = "") {
-    echo "Starting build with '${tags}'"
-    echo "Checkout"
-    // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
-    checkout scm
-    echo "DEBUG INFO"
-    sh 'git branch'
-    sh 'ifconfig'
-    echo "Configure"
-    def ret = sh(returnStatus: true,
-                 script: """#!/bin/bash +ex
-                            declare -i RESULT=0
-                            mkdir build
-                            cd build
-                            cmake -DCMAKE_BUILD_TYPE="\${build_type}" -G "\${generator}" ..
-                            exit \$RESULT""")
-    if (ret) {
-      echo "Failed"
-      currentBuild.result = 'FAILURE'
-    } else {
-      echo "SUCCESS"
-    }
-    currentBuild.result
-    echo "Build"
-    // make -j 2 ${build_opts}
-    echo "Test"
-    // ctest .
+             build_type = "Debug",
+             generator = "Unix Makefiles",
+             cmake_opts = "",
+             build_opts = "") {
+  deleteDir()
+  echo "Starting build with '${tags}'"
+  echo "Checkout"
+  // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
+  checkout scm
+  echo "DEBUG INFO"
+  sh 'git branch'
+  sh 'ifconfig'
+  echo "Configure"
+  def ret = sh(returnStatus: true,
+               script: """#!/bin/bash +ex
+                          declare -i RESULT=0
+                          mkdir build || RESULT=1
+                          if ((\$RESULT)); then
+                            exit \$RESULT
+                          fi;
+                          cd build || RESULT=1
+                          if ((\$RESULT)); then
+                            exit \$RESULT
+                          fi;
+                          echo "build_dir: \${build_dir}"
+                          echo "generator: \${generator}"
+                          cmake -DCMAKE_BUILD_TYPE="\${build_type}" -G "\${generator}" .. || RESULT=1
+                          exit \$RESULT""")
+  if (ret) {
+    echo "FAILURE"
+    currentBuild.result = 'FAILURE'
+  } else {
+    echo "SUCCESS"
+  }
+  currentBuild.result
+  echo "Build"
+  // make -j 2 ${build_opts}
+  echo "Test"
+  // ctest .
 }

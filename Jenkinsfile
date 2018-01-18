@@ -9,9 +9,7 @@ def gcc_builds = ["Linux && gcc4.8",
                   "Linux && gcc7.2"]
 def msvc_builds = ["msbuild"]
 
-pipeline {
-  agent none
-
+job ('foo') {
   triggers {
     githubPullRequest {
       admins(['Neverlord', 'josephnoir', 'mavam'])
@@ -23,6 +21,10 @@ pipeline {
       // displayBuildErrorsOnDownstreamBuilds()
     }
   }
+}
+
+pipeline {
+  agent none
 
   stages {
     stage ('Get') {

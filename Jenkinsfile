@@ -15,20 +15,6 @@ def clang_cmake_opts = "-DCAF_NO_PROTOBUF_EXAMPLES:BOOL=yes -DCAF_NO_QT_EXAMPLES
 
 def msbuild_opts = "-DCAF_BUILD_STATIC_ONLY:BOOL=yes -DCAF_NO_BENCHMARKS:BOOL=yes -DCAF_NO_OPENCL:BOOL=yes"
 
-job ('foo') {
-  triggers {
-    githubPullRequest {
-      admins(['Neverlord', 'josephnoir', 'mavam'])
-      orgWhitelist('actor-framework')
-      cron('H/5 * * * *')
-      triggerPhrase('.*test\\W+this\\W+please.*')
-      // onlyTriggerPhrase()
-      useGitHubHooks()
-      // displayBuildErrorsOnDownstreamBuilds()
-    }
-  }
-}
-
 pipeline {
   agent none
 

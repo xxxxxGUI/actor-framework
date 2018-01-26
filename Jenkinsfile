@@ -136,14 +136,14 @@ def do_ms_stuff(tags,
                 generator = "Visual Studio 15 2017",
                 build_opts = "") {
   deleteDir()
-  echo "Starting build with '${tags}'"
-  echo "Checkout"
+  bat 'echo "Starting build with \'${tags}\'"'
+  bat 'echo "Checkout"'
   // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
   checkout scm
-  echo "DEBUG INFO"
+  bat 'echo "DEBUG INFO"'
   bat 'git branch'
-  echo "Configure"
-  echo "Not implemented on Windows ..."
+  bat 'echo "Configure"'
+  bat 'echo "Not implemented on Windows ..."'
   // def ret = bat(returnStatus: true,
   //               script: """#!/bin/bash +ex
   //                          declare -i RESULT=0
@@ -166,8 +166,8 @@ def do_ms_stuff(tags,
   // } else {
   //   echo "SUCCESS"
   // }
-  echo "Build"
+  bat 'echo "Build"'
   // make -j 2 ${build_opts}
-  echo "Test"
+  bat 'echo "Test"'
   // ctest --output-on-failure
 }

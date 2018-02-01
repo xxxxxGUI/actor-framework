@@ -141,31 +141,24 @@ def do_ms_stuff(tags,
   // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
   checkout scm
   bat 'echo "DEBUG INFO"'
-  bat 'git.exe branch'
+  // bat 'git.exe branch'
   bat 'echo "Configure"'
   bat 'echo "Not implemented on Windows ..."'
-  // def ret = bat(returnStatus: true,
-  //               script: """#!/bin/bash +ex
-  //                          declare -i RESULT=0
-  //                          mkdir build || RESULT=1
-  //                          if ((\$RESULT)); then
-  //                            exit \$RESULT
-  //                          fi;
-  //                          cd build || RESULT=1
-  //                          if ((\$RESULT)); then
-  //                            exit \$RESULT
-  //                          fi;
-  //                          echo "build_type: $build_type"
-  //                          echo "generator: $generator"
-  //                          cmake.exe -DCMAKE_BUILD_TYPE=$build_type -G $generator $cmake_opts .. || RESULT=1
-  //                          # cmake --build
-  //                          exit \$RESULT""")
-  // if (ret) {
-  //   echo "FAILURE"
-  //   currentBuild.result = 'FAILURE'
-  // } else {
-  //   echo "SUCCESS"
-  // }
+  def ret = bat(returnStatus: true,
+                script: """SET RESULT=0
+                           cmake -E make_directory build
+                           cd build
+                           echo "build_type: %build_type%"
+                           echo "generator: %generator%"
+                           cmake.exe -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
+                           cmake --build .
+                           EXIT %RESULT%""")
+  if (ret) {
+    echo "FAILURE"
+    currentBuild.result = 'FAILURE'
+  } else {
+    echo "SUCCESS"
+  }
   bat 'echo "Build"'
   // make -j 2 ${build_opts}
   bat 'echo "Test"'

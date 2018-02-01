@@ -136,31 +136,39 @@ def do_ms_stuff(tags,
                 generator = "Visual Studio 15 2017",
                 build_opts = "") {
   deleteDir()
-  bat 'echo "Starting build with \'${tags}\'"'
-  bat 'echo "Checkout"'
+  sh 'echo "Starting build with \'${tags}\'"'
+  sh 'echo "Checkout"'
   // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
   checkout scm
-  bat 'echo "DEBUG INFO"'
-  // bat 'git.exe branch'
-  bat 'echo "Configure"'
-  bat 'echo "Not implemented on Windows ..."'
-  def ret = bat(returnStatus: true,
-                script: """SET RESULT=0
-                           cmake -E make_directory build
-                           cd build
-                           echo "build_type: %build_type%"
-                           echo "generator: %generator%"
-                           cmake.exe -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
-                           cmake --build .
-                           EXIT %RESULT%""")
+  sh 'echo "DEBUG INFO"'
+  // sh 'git.exe branch'
+  sh 'echo "Configure"'
+  sh 'echo "Not implemented on Windows ..."'
+  sh"""SET RESULT=0
+       cmake -E make_directory build
+       cd build
+       echo "build_type: %build_type%"
+       echo "generator: %generator%"
+       cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
+       cmake --build .
+       EXIT %RESULT%"""
+  // def ret = bat(returnStatus: true,
+  //               script: """SET RESULT=0
+  //                          cmake -E make_directory build
+  //                          cd build
+  //                          echo "build_type: %build_type%"
+  //                          echo "generator: %generator%"
+  //                          cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
+  //                          cmake --build .
+  //                          EXIT %RESULT%""")
   if (ret) {
     echo "FAILURE"
     currentBuild.result = 'FAILURE'
   } else {
     echo "SUCCESS"
   }
-  bat 'echo "Build"'
+  sh 'echo "Build"'
   // make -j 2 ${build_opts}
-  bat 'echo "Test"'
+  sh 'echo "Test"'
   // ctest --output-on-failure
 }

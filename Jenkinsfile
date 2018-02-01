@@ -136,7 +136,7 @@ def do_ms_stuff(tags,
                 generator = "Visual Studio 15 2017",
                 build_opts = "") {
   deleteDir()
-  sh 'echo "Starting build with \'${tags}\'"'
+  sh 'echo "Starting build with \'%tags%\'"'
   sh 'echo "Checkout"'
   // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
   checkout scm

@@ -141,7 +141,7 @@ def do_ms_stuff(tags,
   // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
   checkout scm
   bat 'echo "DEBUG INFO"'
-  bat 'git branch'
+  bat 'git.exe branch'
   bat 'echo "Configure"'
   bat 'echo "Not implemented on Windows ..."'
   // def ret = bat(returnStatus: true,

@@ -135,39 +135,41 @@ def do_ms_stuff(tags,
                 cmake_opts = "",
                 generator = "Visual Studio 15 2017",
                 build_opts = "") {
-  deleteDir()
-  // bat 'echo "Starting build with \'%tags%\'"'
-  // bat 'echo "Checkout"'
-  // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
-  checkout scm
-  // bat 'echo "DEBUG INFO"'
-  // TODO: bat'git.exe branch'
-  // bat 'echo "Configure"'
-  // bat 'echo "Not implemented on Windows ..."'
-  // bat"""cmake -E make_directory build
-  //      cd build
-  //      echo "build_type: %build_type%"
-  //      echo "generator: %generator%"
-  //      cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
-  //      cmake --build .
-  //      """
-  def ret = bat(returnStatus: true,
-                script: """SET RESULT=0
-                           cmake -E make_directory build
-                           cd build
-                           echo "build_type: %build_type%"
-                           echo "generator: %generator%"
-                           cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
-                           ::cmake --build .
-                           EXIT %RESULT%""")
-  if (ret) {
-    // echo "FAILURE"
-    currentBuild.result = 'FAILURE'
-  } //else {
-  //   echo "SUCCESS"
-  // }
-  // bat 'echo "Build"'
-  // make -j 2 ${build_opts}
-  // bat 'echo "Test"'
-  // ctest --output-on-failure
+  withEnv(['PATH=C:\\Windows\\System32;C:\\Program Files\\CMake\\bin;C:\\Program Files\\Git\\cmd']) {
+    deleteDir()
+    // bat 'echo "Starting build with \'%tags%\'"'
+    // bat 'echo "Checkout"'
+    // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
+    checkout scm
+    // bat 'echo "DEBUG INFO"'
+    // TODO: bat'git.exe branch'
+    // bat 'echo "Configure"'
+    // bat 'echo "Not implemented on Windows ..."'
+    // bat"""cmake -E make_directory build
+    //      cd build
+    //      echo "build_type: %build_type%"
+    //      echo "generator: %generator%"
+    //      cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
+    //      cmake --build .
+    //      """
+    def ret = bat(returnStatus: true,
+                  script: """SET RESULT=0
+                             cmake -E make_directory build
+                             cd build
+                             echo "build_type: %build_type%"
+                             echo "generator: %generator%"
+                             cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
+                             ::cmake --build .
+                             EXIT %RESULT%""")
+    if (ret) {
+      // echo "FAILURE"
+      currentBuild.result = 'FAILURE'
+    } //else {
+    //   echo "SUCCESS"
+    // }
+    // bat 'echo "Build"'
+    // make -j 2 ${build_opts}
+    // bat 'echo "Test"'
+    // ctest --output-on-failure
+  }
 }

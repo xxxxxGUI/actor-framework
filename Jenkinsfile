@@ -64,7 +64,7 @@ pipeline {
         // windows builds
         stage('msbuild') {
           agent { label "msbuild" }
-          steps { do_unix_stuff("msbuild", msbuild_opts) }
+          steps { do_ms_stuff("msbuild", msbuild_opts) }
         }
       }
     }
@@ -141,26 +141,25 @@ def do_ms_stuff(tags,
   // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
   checkout scm
   sh 'echo "DEBUG INFO"'
-  // sh 'git.exe branch'
+  // TODO: sh'git.exe branch'
   sh 'echo "Configure"'
   sh 'echo "Not implemented on Windows ..."'
-  sh"""SET RESULT=0
-       cmake -E make_directory build
-       cd build
-       echo "build_type: %build_type%"
-       echo "generator: %generator%"
-       cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
-       cmake --build .
-       EXIT %RESULT%"""
-  // def ret = bat(returnStatus: true,
-  //               script: """SET RESULT=0
-  //                          cmake -E make_directory build
-  //                          cd build
-  //                          echo "build_type: %build_type%"
-  //                          echo "generator: %generator%"
-  //                          cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
-  //                          cmake --build .
-  //                          EXIT %RESULT%""")
+  // sh"""cmake -E make_directory build
+  //      cd build
+  //      echo "build_type: %build_type%"
+  //      echo "generator: %generator%"
+  //      cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
+  //      cmake --build .
+  //      """
+  def ret = bat(returnStatus: true,
+                script: """SET RESULT=0
+                           cmake -E make_directory build
+                           cd build
+                           echo "build_type: %build_type%"
+                           echo "generator: %generator%"
+                           cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
+                           cmake --build .
+                           EXIT %RESULT%""")
   if (ret) {
     echo "FAILURE"
     currentBuild.result = 'FAILURE'

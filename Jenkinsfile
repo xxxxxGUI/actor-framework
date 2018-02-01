@@ -136,15 +136,15 @@ def do_ms_stuff(tags,
                 generator = "Visual Studio 15 2017",
                 build_opts = "") {
   deleteDir()
-  sh 'echo "Starting build with \'%tags%\'"'
-  sh 'echo "Checkout"'
+  bat 'echo "Starting build with \'%tags%\'"'
+  bat 'echo "Checkout"'
   // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
   checkout scm
-  sh 'echo "DEBUG INFO"'
-  // TODO: sh'git.exe branch'
-  sh 'echo "Configure"'
-  sh 'echo "Not implemented on Windows ..."'
-  // sh"""cmake -E make_directory build
+  bat 'echo "DEBUG INFO"'
+  // TODO: bat'git.exe branch'
+  bat 'echo "Configure"'
+  bat 'echo "Not implemented on Windows ..."'
+  // bat"""cmake -E make_directory build
   //      cd build
   //      echo "build_type: %build_type%"
   //      echo "generator: %generator%"
@@ -166,8 +166,8 @@ def do_ms_stuff(tags,
   } else {
     echo "SUCCESS"
   }
-  sh 'echo "Build"'
+  bat 'echo "Build"'
   // make -j 2 ${build_opts}
-  sh 'echo "Test"'
+  bat 'echo "Test"'
   // ctest --output-on-failure
 }

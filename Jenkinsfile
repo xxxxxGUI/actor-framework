@@ -146,7 +146,7 @@ def do_ms_stuff(tags,
     bat 'git branch'
     bat 'echo "Configure"'
     bat 'echo %cd%'
-    bat 'ls'
+    bat 'dir'
     // bat 'echo "Not implemented on Windows ..."'
     // bat"""cmake -E make_directory build
     //      cd build

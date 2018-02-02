@@ -78,10 +78,6 @@ pipeline {
   }
 }
 
-if (currentBuild.result == null) {
-  currentBuild.result = 'SUCCESS'
-}
-
 def do_unix_stuff(tags,
                   cmake_opts = "",
                   build_type = "Debug",
@@ -97,28 +93,22 @@ def do_unix_stuff(tags,
   echo "Configure"
   def ret = sh(returnStatus: true,
                script: """#!/bin/bash +ex
-                          declare -i RESULT=0
-                          mkdir build || RESULT=1
-                          if ((\$RESULT)); then
-                            exit \$RESULT
-                          fi;
-                          cd build || RESULT=1
-                          if ((\$RESULT)); then
-                            exit \$RESULT
-                          fi;
-                          echo "build_type: $build_type"
-                          echo "generator: $generator"
-                          cmake -C ../cmake/jenkins.cmake -DCMAKE_BUILD_TYPE=$build_type -G $generator $cmake_opts .. || RESULT=1
-                          exit \$RESULT""")
+                          mkdir build || exit 1
+                          cd build || exit 1
+                          cmake -C ../cmake/jenkins.cmake -DCMAKE_BUILD_TYPE=$build_type -G "$generator" $cmake_opts .. || exit 1
+                          cmake --build . || exit 1
+                          exit 0""")
   if (ret) {
     echo "FAILURE"
     currentBuild.result = 'FAILURE'
-  } else {
+    return
+  } else if (currentBuild.result != "FAILURE") {
     echo "SUCCESS"
+    currentBuild.result = 'SUCCESS'
   }
-  echo "Build"
+  // echo "Build"
   // make -j 2 ${build_opts}
-  echo "Test"
+  // echo "Test"
   // more shell scripts?
   // if [ `uname` = "Darwin" ] ; then
   //   export DYLD_LIBRARY_PATH="$PWD/build/lib"
@@ -144,32 +134,27 @@ def do_ms_stuff(tags,
     checkout scm
     bat 'echo "DEBUG INFO"'
     bat 'git branch'
-    bat 'echo "Configure"'
-    bat 'echo %cd%'
     bat 'dir'
-    // bat 'echo "Not implemented on Windows ..."'
-    // bat"""cmake -E make_directory build
-    //      cd build
-    //      echo "build_type: %build_type%"
-    //      echo "generator: %generator%"
-    //      cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
-    //      cmake --build .
-    //      """
     def ret = bat(returnStatus: true,
-                  script: """SET RESULT=0
-                             cmake -E make_directory build
+                  script: """cmake -E make_directory build
                              cd build
-                             echo "build_type: ${build_type}"
-                             echo "generator: ${generator}"
                              cmake -DCMAKE_BUILD_TYPE=${build_type} -G "${generator}" ${cmake_opts} ..
+                             IF /I "%ERRORLEVEL%" NEQ "0" (
+                               EXIT 1
+                             )
                              cmake --build .
-                             EXIT %RESULT%""")
+                             IF /I "%ERRORLEVEL%" NEQ "0" (
+                               EXIT 1
+                             )
+                             EXIT 0""")
     if (ret) {
-      // echo "FAILURE"
+      echo "FAILURE"
       currentBuild.result = 'FAILURE'
-    } //else {
-    //   echo "SUCCESS"
-    // }
+      return
+    } else if (currentBuild.result != "FAILURE") {
+      echo "SUCCESS"
+      currentBuild.result = 'SUCCESS'
+    }
     // bat 'echo "Build"'
     // make -j 2 ${build_opts}
     // bat 'echo "Test"'

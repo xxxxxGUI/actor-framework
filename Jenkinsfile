@@ -139,12 +139,14 @@ def do_ms_stuff(tags,
   withEnv(['PATH=C:\\Windows\\System32;C:\\Program Files\\CMake\\bin;C:\\Program Files\\Git\\cmd']) {
     deleteDir()
     bat "echo \"Starting build with \'${tags}\'\""
-    // bat 'echo "Checkout"'
+    bat 'echo "Checkout"'
     // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
     checkout scm
-    // bat 'echo "DEBUG INFO"'
+    bat 'echo "DEBUG INFO"'
     bat 'git branch'
-    // bat 'echo "Configure"'
+    bat 'echo "Configure"'
+    bat 'echo %cd%'
+    bat 'ls'
     // bat 'echo "Not implemented on Windows ..."'
     // bat"""cmake -E make_directory build
     //      cd build
@@ -159,7 +161,7 @@ def do_ms_stuff(tags,
                              cd build
                              echo "build_type: ${build_type}"
                              echo "generator: ${generator}"
-                             cmake -DCMAKE_BUILD_TYPE=${build_type} -G "${generator}" ${cmake_opts}
+                             cmake -DCMAKE_BUILD_TYPE=${build_type} -G "${generator}" ${cmake_opts} ..
                              ::cmake --build .
                              EXIT %RESULT%""")
     if (ret) {

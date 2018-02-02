@@ -82,8 +82,8 @@ if (currentBuild.result == null) {
 }
 
 def do_unix_stuff(tags,
-                  build_type = "Debug",
                   cmake_opts = "",
+                  build_type = "Debug",
                   generator = "Unix Makefiles",
                   build_opts = "") {
   deleteDir()
@@ -131,8 +131,8 @@ def do_unix_stuff(tags,
 }
 
 def do_ms_stuff(tags,
-                build_type = "Debug",
                 cmake_opts = "",
+                build_type = "Debug",
                 generator = "Visual Studio 15 2017",
                 build_opts = "") {
   withEnv(['PATH=C:\\Windows\\System32;C:\\Program Files\\CMake\\bin;C:\\Program Files\\Git\\cmd']) {
@@ -158,7 +158,7 @@ def do_ms_stuff(tags,
                              cd build
                              echo "build_type: ${build_type}"
                              echo "generator: ${generator}"
-                             cmake -DCMAKE_BUILD_TYPE=${build_type} -G ${generator} ${cmake_opts}
+                             cmake -DCMAKE_BUILD_TYPE="${build_type}" -G ${generator} ${cmake_opts}
                              ::cmake --build .
                              EXIT %RESULT%""")
     if (ret) {

@@ -156,9 +156,9 @@ def do_ms_stuff(tags,
                   script: """SET RESULT=0
                              cmake -E make_directory build
                              cd build
-                             echo "build_type: %build_type%"
-                             echo "generator: %generator%"
-                             cmake -DCMAKE_BUILD_TYPE=%build_type% -G %generator% %cmake_opts%
+                             echo "build_type: ${build_type}"
+                             echo "generator: ${generator}"
+                             cmake -DCMAKE_BUILD_TYPE=${build_type} -G ${generator} ${cmake_opts}
                              ::cmake --build .
                              EXIT %RESULT%""")
     if (ret) {

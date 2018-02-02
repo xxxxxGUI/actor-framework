@@ -13,7 +13,8 @@ def gcc_cmake_opts = "-DCAF_NO_PROTOBUF_EXAMPLES:BOOL=yes -DCAF_NO_QT_EXAMPLES:B
 
 def clang_cmake_opts = "-DCAF_NO_PROTOBUF_EXAMPLES:BOOL=yes -DCAF_NO_QT_EXAMPLES:BOOL=yes -DCAF_MORE_WARNINGS:BOOL=yes -DCAF_ENABLE_ADDRESS_SANITIZER:BOOL=yes -DCAF_ENABLE_RUNTIME_CHECKS:BOOL=yes -DCAF_USE_ASIO:BOOL=yes -DCAF_NO_BENCHMARKS:BOOL=yes -DCAF_NO_OPENCL:BOOL=yes -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl"
 
-def msbuild_opts = "-DCAF_BUILD_STATIC_ONLY:BOOL=yes -DCAF_NO_BENCHMARKS:BOOL=yes -DCAF_NO_OPENCL:BOOL=yes"
+def msbuild_opts = "-DCAF_BUILD_STATIC_ONLY:BOOL=yes -DCAF_NO_BENCHMARKS:BOOL=yes -DCAF_NO_EXAMPLES:BOOL=yes -DCAF_NO_MEM_MANAGEMENT:BOOL=yes -DCAF_NO_OPENCL:BOOL=yes -DCAF_LOG_LEVEL:INT=0 -DCMAKE_CXX_FLAGS="/MP" ..
+"//"-DCAF_BUILD_STATIC_ONLY:BOOL=yes -DCAF_NO_BENCHMARKS:BOOL=yes -DCAF_NO_OPENCL:BOOL=yes"
 
 pipeline {
   agent none
@@ -137,12 +138,12 @@ def do_ms_stuff(tags,
                 build_opts = "") {
   withEnv(['PATH=C:\\Windows\\System32;C:\\Program Files\\CMake\\bin;C:\\Program Files\\Git\\cmd']) {
     deleteDir()
-    // bat 'echo "Starting build with \'%tags%\'"'
+    bat "echo \"Starting build with \'${tags}\'\""
     // bat 'echo "Checkout"'
     // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
     checkout scm
     // bat 'echo "DEBUG INFO"'
-    // TODO: bat'git.exe branch'
+    bat 'git branch'
     // bat 'echo "Configure"'
     // bat 'echo "Not implemented on Windows ..."'
     // bat"""cmake -E make_directory build
@@ -158,7 +159,7 @@ def do_ms_stuff(tags,
                              cd build
                              echo "build_type: ${build_type}"
                              echo "generator: ${generator}"
-                             cmake -DCMAKE_BUILD_TYPE="${build_type}" -G ${generator} ${cmake_opts}
+                             cmake -DCMAKE_BUILD_TYPE=${build_type} -G "${generator}" ${cmake_opts}
                              ::cmake --build .
                              EXIT %RESULT%""")
     if (ret) {

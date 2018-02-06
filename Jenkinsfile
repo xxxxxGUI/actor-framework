@@ -1,5 +1,6 @@
 #!/usr/bin/env groovy
 
+// Currently unused, but the goal would be to generate the stages from this.
 def clang_builds = ["Linux && clang && LeakSanitizer",
                     "macOS && clang"]
 def gcc_builds = ["Linux && gcc4.8",
@@ -9,24 +10,47 @@ def gcc_builds = ["Linux && gcc4.8",
                   "Linux && gcc7.2"]
 def msvc_builds = ["msbuild"]
 
-def gcc_cmake_opts = "-DCAF_NO_PROTOBUF_EXAMPLES:BOOL=yes -DCAF_NO_QT_EXAMPLES:BOOL=yes -DCAF_MORE_WARNINGS:BOOL=yes -DCAF_ENABLE_ADDRESS_SANITIZER:BOOL=yes -DCAF_ENABLE_RUNTIME_CHECKS:BOOL=yes -DCAF_USE_ASIO:BOOL=yes -DCAF_NO_BENCHMARKS:BOOL=yes -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl"
+// The options we use for the builds.
+def gcc_cmake_opts = "-DCAF_NO_PROTOBUF_EXAMPLES:BOOL=yes " +
+                     "-DCAF_NO_QT_EXAMPLES:BOOL=yes " +
+                     "-DCAF_MORE_WARNINGS:BOOL=yes" +
+                     "-DCAF_ENABLE_ADDRESS_SANITIZER:BOOL=yes" +
+                     "-DCAF_ENABLE_RUNTIME_CHECKS:BOOL=yes" +
+                     "-DCAF_USE_ASIO:BOOL=yes" +
+                     "-DCAF_NO_BENCHMARKS:BOOL=yes" +
+                     "-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl" +
+                     "-DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl"
 
-def clang_cmake_opts = "-DCAF_NO_PROTOBUF_EXAMPLES:BOOL=yes -DCAF_NO_QT_EXAMPLES:BOOL=yes -DCAF_MORE_WARNINGS:BOOL=yes -DCAF_ENABLE_ADDRESS_SANITIZER:BOOL=yes -DCAF_ENABLE_RUNTIME_CHECKS:BOOL=yes -DCAF_USE_ASIO:BOOL=yes -DCAF_NO_BENCHMARKS:BOOL=yes -DCAF_NO_OPENCL:BOOL=yes -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl"
+def clang_cmake_opts = "-DCAF_NO_PROTOBUF_EXAMPLES:BOOL=yes " +
+                       "-DCAF_NO_QT_EXAMPLES:BOOL=yes " +
+                       "-DCAF_MORE_WARNINGS:BOOL=yes " +
+                       "-DCAF_ENABLE_ADDRESS_SANITIZER:BOOL=yes " +
+                       "-DCAF_ENABLE_RUNTIME_CHECKS:BOOL=yes " +
+                       "-DCAF_USE_ASIO:BOOL=yes " +
+                       "-DCAF_NO_BENCHMARKS:BOOL=yes " +
+                       "-DCAF_NO_OPENCL:BOOL=yes " +
+                       "-DOPENSSL_ROOT_DIR=/usr/local/opt/openssl " +
+                       "-DOPENSSL_INCLUDE_DIR=/usr/local/opt/openssl"
 
-def msbuild_opts = "-DCAF_BUILD_STATIC_ONLY:BOOL=yes -DCAF_NO_BENCHMARKS:BOOL=yes -DCAF_NO_EXAMPLES:BOOL=yes -DCAF_NO_MEM_MANAGEMENT:BOOL=yes -DCAF_NO_OPENCL:BOOL=yes -DCAF_LOG_LEVEL:INT=0 -DCMAKE_CXX_FLAGS=\"/MP\""
-// "-DCAF_BUILD_STATIC_ONLY:BOOL=yes -DCAF_NO_BENCHMARKS:BOOL=yes -DCAF_NO_OPENCL:BOOL=yes"
+def msbuild_opts = "-DCAF_BUILD_STATIC_ONLY:BOOL=yes " +
+                   "-DCAF_NO_BENCHMARKS:BOOL=yes " +
+                   "-DCAF_NO_EXAMPLES:BOOL=yes " +
+                   "-DCAF_NO_MEM_MANAGEMENT:BOOL=yes " +
+                   "-DCAF_NO_OPENCL:BOOL=yes " +
+                   "-DCAF_LOG_LEVEL:INT=0 " +
+                   "-DCMAKE_CXX_FLAGS=\"/MP\""
 
 pipeline {
   agent none
 
   stages {
-    stage ('Get') {
+    stage ('Preparation') {
       steps {
         node ('master') {
+          echo "Starting Jenkins stuff"
           // TODO: pull github branch into mirror
           // TODO: set URL, refs, prNum?
           // TODO: maybe static tests?
-          echo "Hello from master"
         }
       }
     }
@@ -84,11 +108,11 @@ def do_unix_stuff(tags,
                   generator = "Unix Makefiles",
                   build_opts = "") {
   deleteDir()
-  echo "Starting build with '${tags}'"
-  echo "Checkout"
+  // echo "Starting build with '${tags}'"
+  // echo "Checkout"
   // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
   checkout scm
-  echo "Step: Configure for '${tags}'"
+  // echo "Step: Configure for '${tags}'"
   def ret = sh(returnStatus: true,
                script: """#!/bin/bash +ex
                           mkdir build || exit 1
@@ -101,7 +125,7 @@ def do_unix_stuff(tags,
     currentBuild.result = 'FAILURE'
     return
   }
-  echo "Step: Build for '${tags}'"
+  // echo "Step: Build for '${tags}'"
   ret = sh(returnStatus: true,
            script: """#!/bin/bash +ex
                       cd build || exit 1
@@ -111,10 +135,8 @@ def do_unix_stuff(tags,
     echo "[!!!] Build failed!"
     currentBuild.result = 'FAILURE'
     return
-  } else if (currentBuild.result != "FAILURE") {
-    echo "SUCCESS"
   }
-  echo "Step: Test for '${tags}'"
+  // echo "Step: Test for '${tags}'"
   ret = sh(returnStatus: true,
            script: """#!/bin/bash +ex
                       declare -i RESULT=0
@@ -127,7 +149,7 @@ def do_unix_stuff(tags,
                         export LD_LIBRARY_PATH="$PWD/build/lib"
                         export ASAN_OPTIONS=detect_leaks=1
                       fi
-                      RESULT=ctest --output-on-failure .
+                      ctest --output-on-failure .
                       exit \$RESULT""")
   if (ret) {
     echo "[!!!] Test failed!"
@@ -135,7 +157,7 @@ def do_unix_stuff(tags,
     return
   }
   if (currentBuild.result != "FAILURE") {
-    echo "SUCCESS"
+    echo "${tags}: SUCCESS"
     currentBuild.result = 'SUCCESS'
   }
 }
@@ -147,11 +169,11 @@ def do_ms_stuff(tags,
                 build_opts = "") {
   withEnv(['PATH=C:\\Windows\\System32;C:\\Program Files\\CMake\\bin;C:\\Program Files\\Git\\cmd']) {
     deleteDir()
-    bat "echo \"Starting build with \'${tags}\'\""
-    bat 'echo "Checkout"'
+    // bat "echo \"Starting build with \'${tags}\'\""
+    // bat 'echo "Checkout"'
     // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
     checkout scm
-    bat "echo \"Step: Configure for '${tags}'\""
+    // bat "echo \"Step: Configure for '${tags}'\""
     def ret = bat(returnStatus: true,
                   script: """cmake -E make_directory build
                              cd build
@@ -165,7 +187,7 @@ def do_ms_stuff(tags,
       currentBuild.result = 'FAILURE'
       return
     }
-    bat "echo \"Step: Build for '${tags}'\""
+    // bat "echo \"Step: Build for '${tags}'\""
     ret = bat(returnStatus: true,
               script: """cd build
                          cmake --build .
@@ -178,7 +200,7 @@ def do_ms_stuff(tags,
       currentBuild.result = 'FAILURE'
       return
     }
-    bat "echo \"Step: Test for '${tags}'\""
+    // bat "echo \"Step: Test for '${tags}'\""
     ret = bat(returnStatus: true,
               script: """cd build
                          ctest --output-on-failure .
@@ -190,6 +212,10 @@ def do_ms_stuff(tags,
       echo "[!!!] Test failed!"
       currentBuild.result = 'FAILURE'
       return
+    }
+    if (currentBuild.result != "FAILURE") {
+      echo "${tags}: SUCCESS"
+      currentBuild.result = 'SUCCESS'
     }
   }
 }

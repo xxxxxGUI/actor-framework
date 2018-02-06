@@ -139,7 +139,6 @@ def do_unix_stuff(tags,
   // echo "Step: Test for '${tags}'"
   ret = sh(returnStatus: true,
            script: """#!/bin/bash +ex
-                      declare -i RESULT=0
                       cd build || exit 1
                       if [ `uname` = "Darwin" ] ; then
                         export DYLD_LIBRARY_PATH="$PWD/build/lib"
@@ -149,8 +148,8 @@ def do_unix_stuff(tags,
                         export LD_LIBRARY_PATH="$PWD/build/lib"
                         export ASAN_OPTIONS=detect_leaks=1
                       fi
-                      ctest --output-on-failure .
-                      exit \$RESULT""")
+                      ctest --output-on-failure . || exit 1
+                      exit 0""")
   if (ret) {
     echo "[!!!] Test failed!"
     currentBuild.result = 'FAILURE'

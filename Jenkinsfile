@@ -102,11 +102,11 @@ def do_unix_stuff(tags,
     return
   }
   echo "Step: Build for '${tags}'"
-  def ret = sh(returnStatus: true,
-               script: """#!/bin/bash +ex
-                          cd build || exit 1
-                          cmake --build . || exit 1
-                          exit 0""")
+  ret = sh(returnStatus: true,
+           script: """#!/bin/bash +ex
+                      cd build || exit 1
+                      cmake --build . || exit 1
+                      exit 0""")
   if (ret) {
     echo "[!!!] Build failed!"
     currentBuild.result = 'FAILURE'
@@ -115,20 +115,20 @@ def do_unix_stuff(tags,
     echo "SUCCESS"
   }
   echo "Step: Test for '${tags}'"
-  def ret = sh(returnStatus: true,
-               script: """#!/bin/bash +ex
-                          declare -i RESULT=0
-                          cd build || exit 1
-                          if [ `uname` = "Darwin" ] ; then
-                            export DYLD_LIBRARY_PATH="$PWD/build/lib"
-                          elif [ `uname` = "FreeBSD" ] ; then
-                            export LD_LIBRARY_PATH="$PWD/build/lib"
-                          else
-                            export LD_LIBRARY_PATH="$PWD/build/lib"
-                            export ASAN_OPTIONS=detect_leaks=1
-                          fi
-                          RESULT=ctest --output-on-failure .
-                          exit \$RESULT""")
+  ret = sh(returnStatus: true,
+           script: """#!/bin/bash +ex
+                      declare -i RESULT=0
+                      cd build || exit 1
+                      if [ `uname` = "Darwin" ] ; then
+                        export DYLD_LIBRARY_PATH="$PWD/build/lib"
+                      elif [ `uname` = "FreeBSD" ] ; then
+                        export LD_LIBRARY_PATH="$PWD/build/lib"
+                      else
+                        export LD_LIBRARY_PATH="$PWD/build/lib"
+                        export ASAN_OPTIONS=detect_leaks=1
+                      fi
+                      RESULT=ctest --output-on-failure .
+                      exit \$RESULT""")
   if (ret) {
     echo "[!!!] Test failed!"
     currentBuild.result = 'FAILURE'
@@ -166,26 +166,26 @@ def do_ms_stuff(tags,
       return
     }
     bat "echo \"Step: Build for '${tags}'\""
-    def ret = bat(returnStatus: true,
-                  script: """cd build
-                             cmake --build .
-                             IF /I "%ERRORLEVEL%" NEQ "0" (
-                               EXIT 1
-                             )
-                             EXIT 0""")
+    ret = bat(returnStatus: true,
+              script: """cd build
+                         cmake --build .
+                         IF /I "%ERRORLEVEL%" NEQ "0" (
+                           EXIT 1
+                         )
+                         EXIT 0""")
     if (ret) {
       echo "[!!!] Build failed!"
       currentBuild.result = 'FAILURE'
       return
     }
     bat "echo \"Step: Test for '${tags}'\""
-    def ret = bat(returnStatus: true,
-                  script: """cd build
-                             ctest --output-on-failure .
-                             IF /I "%ERRORLEVEL%" NEQ "0" (
-                               EXIT 1
-                             )
-                             EXIT 0""")
+    ret = bat(returnStatus: true,
+              script: """cd build
+                         ctest --output-on-failure .
+                         IF /I "%ERRORLEVEL%" NEQ "0" (
+                           EXIT 1
+                         )
+                         EXIT 0""")
     if (ret) {
       echo "[!!!] Test failed!"
       currentBuild.result = 'FAILURE'

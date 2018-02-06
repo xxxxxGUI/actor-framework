@@ -30,9 +30,9 @@ pipeline {
         }
       }
     }
-    stage ('Build') {
+    stage ('Build & Test') {
       parallel {
-        // GCC BUILDS
+        // gcc builds
         stage ("Linux && gcc4.8") {
           agent { label "Linux && gcc4.8" }
           steps { do_unix_stuff("Linux && gcc4.8", gcc_cmake_opts) }
@@ -88,9 +88,7 @@ def do_unix_stuff(tags,
   echo "Checkout"
   // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
   checkout scm
-  echo "DEBUG INFO"
-  sh 'git branch'
-  echo "Configure"
+  echo "Step: Configure for '${tags}'"
   def ret = sh(returnStatus: true,
                script: """#!/bin/bash +ex
                           mkdir build || exit 1
@@ -99,26 +97,47 @@ def do_unix_stuff(tags,
                           cmake --build . || exit 1
                           exit 0""")
   if (ret) {
-    echo "FAILURE"
+    echo "[!!!] Configure failed!"
+    currentBuild.result = 'FAILURE'
+    return
+  }
+  echo "Step: Build for '${tags}'"
+  def ret = sh(returnStatus: true,
+               script: """#!/bin/bash +ex
+                          cd build || exit 1
+                          cmake --build . || exit 1
+                          exit 0""")
+  if (ret) {
+    echo "[!!!] Build failed!"
     currentBuild.result = 'FAILURE'
     return
   } else if (currentBuild.result != "FAILURE") {
     echo "SUCCESS"
+  }
+  echo "Step: Test for '${tags}'"
+  def ret = sh(returnStatus: true,
+               script: """#!/bin/bash +ex
+                          declare -i RESULT=0
+                          cd build || exit 1
+                          if [ `uname` = "Darwin" ] ; then
+                            export DYLD_LIBRARY_PATH="$PWD/build/lib"
+                          elif [ `uname` = "FreeBSD" ] ; then
+                            export LD_LIBRARY_PATH="$PWD/build/lib"
+                          else
+                            export LD_LIBRARY_PATH="$PWD/build/lib"
+                            export ASAN_OPTIONS=detect_leaks=1
+                          fi
+                          RESULT=ctest --output-on-failure .
+                          exit \$RESULT""")
+  if (ret) {
+    echo "[!!!] Test failed!"
+    currentBuild.result = 'FAILURE'
+    return
+  }
+  if (currentBuild.result != "FAILURE") {
+    echo "SUCCESS"
     currentBuild.result = 'SUCCESS'
   }
-  // echo "Build"
-  // make -j 2 ${build_opts}
-  // echo "Test"
-  // more shell scripts?
-  // if [ `uname` = "Darwin" ] ; then
-  //   export DYLD_LIBRARY_PATH="$PWD/build/lib"
-  // elif [ `uname` = "FreeBSD" ] ; then
-  //   export LD_LIBRARY_PATH="$PWD/build/lib"
-  // else
-  //   export LD_LIBRARY_PATH="$PWD/build/lib"
-  //   export ASAN_OPTIONS=detect_leaks=1
-  // fi
-  // ctest --output-on-failure
 }
 
 def do_ms_stuff(tags,
@@ -132,9 +151,7 @@ def do_ms_stuff(tags,
     bat 'echo "Checkout"'
     // TODO: pull from mirror, not from GitHub, (RIOT fetch func?)
     checkout scm
-    bat 'echo "DEBUG INFO"'
-    bat 'git branch'
-    bat 'dir'
+    bat "echo \"Step: Configure for '${tags}'\""
     def ret = bat(returnStatus: true,
                   script: """cmake -E make_directory build
                              cd build
@@ -142,22 +159,37 @@ def do_ms_stuff(tags,
                              IF /I "%ERRORLEVEL%" NEQ "0" (
                                EXIT 1
                              )
+                             EXIT 0""")
+    if (ret) {
+      echo "[!!!] Configure failed!"
+      currentBuild.result = 'FAILURE'
+      return
+    }
+    bat "echo \"Step: Build for '${tags}'\""
+    def ret = bat(returnStatus: true,
+                  script: """cd build
                              cmake --build .
                              IF /I "%ERRORLEVEL%" NEQ "0" (
                                EXIT 1
                              )
                              EXIT 0""")
     if (ret) {
-      echo "FAILURE"
+      echo "[!!!] Build failed!"
       currentBuild.result = 'FAILURE'
       return
-    } else if (currentBuild.result != "FAILURE") {
-      echo "SUCCESS"
-      currentBuild.result = 'SUCCESS'
     }
-    // bat 'echo "Build"'
-    // make -j 2 ${build_opts}
-    // bat 'echo "Test"'
-    // ctest --output-on-failure
+    bat "echo \"Step: Test for '${tags}'\""
+    def ret = bat(returnStatus: true,
+                  script: """cd build
+                             ctest --output-on-failure .
+                             IF /I "%ERRORLEVEL%" NEQ "0" (
+                               EXIT 1
+                             )
+                             EXIT 0""")
+    if (ret) {
+      echo "[!!!] Test failed!"
+      currentBuild.result = 'FAILURE'
+      return
+    }
   }
 }

@@ -100,6 +100,24 @@ pipeline {
       }
     }
   }
+  post {
+    success {
+      echo "Yeah!"
+      // TODO: Gitter?
+    }
+    failure {
+      echo "God damn it!"
+      // TODO: Gitter?
+      // TODO: Email
+      // emailext(
+      //   subject: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+      //       body: """<p>FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
+      //         <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+      //       recipientProviders: [[$class: 'DevelopersRecipientProvider']]
+      // )
+      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: emailextrecipients([[$class: 'CulpritsRecipientProvider'], [$class: 'RequesterRecipientProvider']])])
+    }
+  }
 }
 
 def do_unix_stuff(tags,

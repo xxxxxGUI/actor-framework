@@ -106,7 +106,7 @@ pipeline {
       // TODO: Gitter?
     }
     failure {
-      echo "God damn it!"
+      echo "God damn it! But there don't seem to be mails at all ..."
       // TODO: Gitter?
       // TODO: Email
       emailext(
